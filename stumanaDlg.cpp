@@ -31,27 +31,28 @@ void CstumanaDlg::DoDataExchange(CDataExchange* pDX)
 	//  DDX_Control(pDX, IDC_TEMPEDT, m_tempedt);
 	DDX_Control(pDX, IDC_TEMPEDT, m_tmpedt);
 	DDX_Control(pDX, IDC_OUTLST, m_outlst);
-	DDX_Control(pDX, IDC_TNEDT, m_tnedt);
+	//DDX_Control(pDX, IDC_TNEDT, m_tnedt);
+	DDX_Control(pDX, IDC_ALTBTN, m_altbtn);
+	DDX_Control(pDX, IDC_TNCOBO, m_tncobo);
 }
 
 BEGIN_MESSAGE_MAP(CstumanaDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDC_CONNBTN, &CstumanaDlg::OnBnClickedConnbtn)
-	
-	//ON_WM_LBUTTONDOWN(IDC_INLST,&CstumanaDlg::OnBnClickedConnbtn)
-	//ON_LBN_DBLCLK(IDC_INLST,&CstumanaDlg::OnBnClickedConnbtn)
-
 	ON_NOTIFY(NM_DBLCLK, IDC_INLST, &CstumanaDlg::OnNMDblclkInlst)
-//	ON_NOTIFY(NM_CLICK, IDC_INLST, &CstumanaDlg::OnNMClickInlst)
 	ON_EN_KILLFOCUS(IDC_TEMPEDT, &CstumanaDlg::OnEnKillfocusTempedt)
 	ON_BN_CLICKED(IDOK, &CstumanaDlg::OnBnClickedOk)
-//	ON_NOTIFY(NM_KILLFOCUS, IDC_INLST, &CstumanaDlg::OnNMKillfocusInlst)
-ON_BN_CLICKED(IDC_ACBTN, &CstumanaDlg::OnBnClickedAcbtn)
-ON_BN_CLICKED(IDC_DCBTN, &CstumanaDlg::OnBnClickedDcbtn)
-ON_BN_CLICKED(IDC_INSRTBTN, &CstumanaDlg::OnBnClickedInsrtbtn)
-ON_EN_KILLFOCUS(IDC_TNEDT, &CstumanaDlg::OnEnKillfocusTnedt)
-ON_BN_CLICKED(IDC_SELBTN, &CstumanaDlg::OnBnClickedSelbtn)
+	ON_BN_CLICKED(IDC_ACBTN, &CstumanaDlg::OnBnClickedAcbtn)
+	ON_BN_CLICKED(IDC_DCBTN, &CstumanaDlg::OnBnClickedDcbtn)
+	ON_BN_CLICKED(IDC_INSRTBTN, &CstumanaDlg::OnBnClickedInsrtbtn)
+	ON_EN_KILLFOCUS(IDC_TNEDT, &CstumanaDlg::OnEnKillfocusTnedt)
+	ON_BN_CLICKED(IDC_SELBTN, &CstumanaDlg::OnBnClickedSelbtn)
+	ON_BN_CLICKED(IDC_DELBTN, &CstumanaDlg::OnBnClickedDelbtn)
+	ON_NOTIFY(NM_CLICK, IDC_OUTLST, &CstumanaDlg::OnNMClickOutlst)
+	ON_BN_CLICKED(IDC_ALTBTN, &CstumanaDlg::OnBnClickedAltbtn)
+	ON_CBN_DROPDOWN(IDC_TNCOBO, &CstumanaDlg::OnCbnDropdownTncobo)
+	ON_CBN_SELCHANGE(IDC_TNCOBO, &CstumanaDlg::OnCbnSelchangeTncobo)
 END_MESSAGE_MAP()
 
 
@@ -69,8 +70,10 @@ BOOL CstumanaDlg::OnInitDialog()
 	// TODO: 在此添加额外的初始化代码
 	DWORD grid_style = m_inlst.GetExtendedStyle();
 	grid_style|= LVS_EX_FULLROWSELECT;
-	grid_style|= LVS_EX_GRIDLINES;
+	//grid_style|= LVS_EX_GRIDLINES;
 	m_inlst.SetExtendedStyle(grid_style);
+	m_outlst.SetExtendedStyle(grid_style);
+
 
 	incol_index=0;
 	outcol_index=0;
@@ -94,6 +97,7 @@ BOOL CstumanaDlg::OnInitDialog()
 
 
 	m_tmpedt.ShowWindow(FALSE);
+	m_altbtn.EnableWindow(FALSE);
 
 	
 
@@ -294,7 +298,8 @@ CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
                 strValue=CString(str);
 				break;
 		case VT_DECIMAL:
-				sprintf(str,("%d"),var.bVal);
+				//sprintf(str,("%d"),var.bVal);
+				sprintf(str,("%d"),var.intVal);
                 strValue=CString(str);
 				break;
         default: 
@@ -306,11 +311,7 @@ CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
 
 void CstumanaDlg::show_res()
 {
-	CString dname;
-	CString loc;
-	int deptno;
 	VARIANT var;
-	CString m_temp;
 
 	std::vector<std::vector<CString> > res;
 	
@@ -357,7 +358,7 @@ void CstumanaDlg::show_res()
 	}
 	catch(_com_error &e)
 	{
-		AfxMessageBox(e.ErrorMessage());
+		show_exception(e.ErrorMessage());
 	}
 }
 
@@ -369,9 +370,6 @@ void CstumanaDlg::OnNMDblclkInlst(NMHDR *pNMHDR, LRESULT *pResult)
 	
 	LVHITTESTINFO info;
 	info.pt = pNMItemActivate->ptAction;
-  
-	
-
 
 	if(m_inlst.SubItemHitTest(&info) != -1 )
 	{
@@ -461,7 +459,13 @@ BOOL CstumanaDlg::PreTranslateMessage(MSG* pMsg)
 }
 
 
-
+CString CstumanaDlg::get_tn()
+{
+	int nIndex = m_tncobo.GetCurSel();
+	CString tn_str;
+	m_tncobo.GetLBText( nIndex, tn_str);
+	return tn_str;
+}
 
 
 void CstumanaDlg::OnBnClickedAcbtn()
@@ -475,7 +479,11 @@ void CstumanaDlg::add_incol()
 {
 	char num[100];
 	sprintf(num,"%d",incol_index);
-	m_inlst.InsertColumn(++incol_index,CString(num),LVCFMT_CENTER,50);
+	m_inlst.InsertColumn(++incol_index,CString(num),LVCFMT_CENTER,70);
+}
+void CstumanaDlg::set_incol(const CString& attr_str,int col_index)
+{
+	m_inlst.SetItemText(0,col_index+1,attr_str);
 }
 
 void CstumanaDlg::del_incol()
@@ -550,8 +558,6 @@ void CstumanaDlg::OnBnClickedInsrtbtn()
 
 	std::vector<CString> row;
 
-	
-
 	for(int i=1;i<=incol_index-1;i++)
 	{
 		if(!m_inlst.GetItemText(0,i).IsEmpty())
@@ -560,8 +566,8 @@ void CstumanaDlg::OnBnClickedInsrtbtn()
 			row.push_back(_T("NULL"));
 	}
 
-	CString tn_str;
-	m_tnedt.GetWindowTextW(tn_str);
+	CString tn_str=get_tn();
+	//m_tnedt.GetWindowTextW(tn_str);
 
 	CString cmd("INSERT INTO ");
 	cmd+=tn_str;
@@ -584,6 +590,8 @@ void CstumanaDlg::OnBnClickedInsrtbtn()
 
 	show_res();
 
+	m_altbtn.EnableWindow(FALSE);
+	
 	return;
 }
 
@@ -591,18 +599,21 @@ void CstumanaDlg::OnBnClickedInsrtbtn()
 void CstumanaDlg::OnEnKillfocusTnedt()
 {
 	// TODO: 在此添加控件通知处理程序代码
-
-
+	CString tn_str=get_tn();
+	//m_tnedt.GetWindowTextW(tn_str);
+	CString cmd=CString("SELECT * FROM ")+tn_str;
+	exec_sql(cmd);
+	show_res();
 }
 
 
 void CstumanaDlg::OnBnClickedSelbtn()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	CString tn_str;
+	CString tn_str=get_tn();
 	CString cmd=_T("SELECT * FROM ");
 	
-	m_tnedt.GetWindowTextW(tn_str);
+	//m_tnedt.GetWindowTextW(tn_str);
 	cmd+=tn_str;
 
 	/*
@@ -614,8 +625,286 @@ void CstumanaDlg::OnBnClickedSelbtn()
 
 
 	exec_sql((_bstr_t)cmd.GetString());
+
+	//exec_sql(cmd);
+
 	show_res();
 
 	//delete[] ptxtTemp;  
 	
+}
+
+
+CString CstumanaDlg::elem_to_CString(const CString& elem,int type)
+{
+	if(elem.IsEmpty())
+		return CString("NULL");
+
+
+	bool is_num=false;
+	switch(type)
+	{
+	case adSmallInt:
+		is_num=true;
+		break;
+	case adInteger:
+		is_num=true;
+		break;
+	case adSingle:
+		is_num=true;
+		break;
+	case adDouble:
+		is_num=true;
+		break;
+	case adCurrency:
+		is_num=true;
+		break;
+	case adError:
+		is_num=true;
+		break;
+	case adTinyInt:
+		is_num=true;
+		break;
+	case adDecimal:
+		is_num=true;
+		break;
+	case adUnsignedTinyInt:
+		is_num=true;
+		break;
+	case adUnsignedSmallInt:
+		is_num=true;
+		break;
+	case adUnsignedInt:
+		is_num=true;
+		break;
+	case adUnsignedBigInt:
+		is_num=true;
+		break;
+	case adNumeric:
+		is_num=true;
+		break;
+	case adVarNumeric:
+		is_num=true;
+		break;
+	case adFileTime:
+		is_num=true;
+		break;
+	case adDate:
+		is_num=true;
+		break;
+	}
+
+	if(is_num)
+		return CString(elem);
+	else
+		return CString("'")+CString(elem)+CString("'");
+
+}
+
+
+void CstumanaDlg::OnBnClickedDelbtn()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	
+	int nld;
+	int ncols;
+
+	POSITION pos=m_outlst.GetFirstSelectedItemPosition();
+
+	if(pos==NULL)
+		show_exception("Please select one row.");
+	
+
+	nld=(int)m_outlst.GetNextSelectedItem(pos);
+
+	CString cmd("DELETE FROM ");
+	CString tn_str=get_tn();
+	//m_tnedt.GetWindowTextW(tn_str);
+	cmd+=tn_str;
+	cmd+=CString(" WHERE ");
+	
+	exec_sql(CString("SELECT * FROM ")+tn_str);
+
+	ncols=m_pRecordset->GetFields()->GetCount();
+	for(int i=0;i<ncols;i++)
+	{
+		CString attr_name=(LPCTSTR)(m_pRecordset->GetFields()->GetItem((long)i)->GetName());
+		int type=m_pRecordset->GetFields()->GetItem((long)i)->Type;
+		if(!m_outlst.GetItemText(nld,i).IsEmpty())
+			cmd+=attr_name+CString("=")+elem_to_CString(m_outlst.GetItemText(nld,i),type);	
+		else
+			cmd+=attr_name+CString(" IS NULL");	
+		if(i!=ncols-1)
+			cmd+=" AND ";
+	}
+
+	exec_sql(cmd);
+	exec_sql(CString("SELECT * FROM ")+tn_str);
+	show_res();
+}
+
+
+void CstumanaDlg::set_incol(int ncols)
+{
+	if(ncols>incol_index-1)
+		while(ncols!=incol_index-1)
+			add_incol();
+	else
+		while(ncols!=incol_index-1)
+			del_incol();
+}
+
+void CstumanaDlg::OnNMClickOutlst(NMHDR *pNMHDR, LRESULT *pResult)
+{
+	LPNMITEMACTIVATE pNMItemActivate = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+	
+	int nld;
+	int ncols;
+
+	POSITION pos=m_outlst.GetFirstSelectedItemPosition();
+	nld=(int)m_outlst.GetNextSelectedItem(pos);
+
+	CString tn_str=get_tn();
+	//m_tnedt.GetWindowTextW(tn_str);
+	
+	if(tn_str.IsEmpty())
+	{
+		*pResult = 0;
+		return;
+	}
+
+	exec_sql(CString("SELECT * FROM ")+tn_str);
+
+	ncols=m_pRecordset->GetFields()->GetCount();
+
+	set_incol(ncols);
+	m_inlst.DeleteAllItems();
+	m_inlst.InsertItem(0,_T(""));
+	m_inlst.SetItemText(0,0,_T("Values"));
+
+	upcache_wh.Empty();
+	upcache_attr.clear();
+
+	for(int i=0;i<ncols;i++)
+	{
+		CString attr_name=(LPCTSTR)(m_pRecordset->GetFields()->GetItem((long)i)->GetName());
+		int type=m_pRecordset->GetFields()->GetItem((long)i)->Type;
+		if(!m_outlst.GetItemText(nld,i).IsEmpty())
+		{
+			set_incol(elem_to_CString(m_outlst.GetItemText(nld,i),type),i);
+			upcache_wh+=attr_name+CString("=")+elem_to_CString(m_outlst.GetItemText(nld,i),type);
+			upcache_attr.push_back(attr_name);
+			if(i!=ncols-1)
+				upcache_wh+=CString(" AND ");
+		}
+		else
+		{
+			upcache_wh+=attr_name+CString(" IS NULL");
+			upcache_attr.push_back(attr_name);
+			if(i!=ncols-1)
+				upcache_wh+=CString(" AND ");
+		}
+	}
+
+	m_altbtn.EnableWindow(TRUE);
+
+	*pResult = 0;
+}
+
+
+void CstumanaDlg::OnBnClickedAltbtn()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
+	std::vector<CString> row;
+
+	for(int i=1;i<=incol_index-1;i++)
+	{
+		if(!m_inlst.GetItemText(0,i).IsEmpty())
+			row.push_back(m_inlst.GetItemText(0,i));
+		else
+			row.push_back(CString("NULL"));
+	}
+
+	CString tn_str=get_tn();
+	//m_tnedt.GetWindowTextW(tn_str);
+
+	CString cmd("UPDATE ");
+	cmd+=tn_str;
+	cmd+=CString(" SET ");
+
+	for(int i=0;i<row.size();i++)
+	{
+		//if(row[i].IsEmpty())
+			//continue;
+		cmd+=upcache_attr[i]+CString("=")+row[i];
+		
+		if(i!=row.size()-1)
+			cmd+=CString(",");
+	}
+	cmd+=CString(" WHERE ")+upcache_wh;
+
+	exec_sql(cmd);
+	cmd.Empty();
+
+	cmd=CString("SELECT * FROM ")+tn_str;
+	exec_sql(cmd);
+
+	show_res();
+
+	m_altbtn.EnableWindow(FALSE);
+
+	return;
+
+
+
+
+}
+
+
+void CstumanaDlg::OnCbnDropdownTncobo()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
+	VARIANT var;
+
+	m_tncobo.ResetContent();
+
+	std::vector<CString> tn_list;
+	exec_sql("SELECT * FROM TAB");
+	try
+	{
+		while(!m_pRecordset->adoEOF)
+		{
+			var=m_pRecordset->GetCollect("TNAME");
+			tn_list.push_back(VARIANT_to_CString(var));
+			m_pRecordset->MoveNext();
+		}
+	}
+	catch(_com_error &e)
+	{
+		show_exception(e.ErrorMessage());
+		return;
+	}
+
+	for(int i=0;i<tn_list.size();i++)
+		m_tncobo.AddString(tn_list[i]);
+	
+
+}
+
+
+void CstumanaDlg::OnCbnSelchangeTncobo()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
+	
+	CString tn_str=get_tn();
+	
+	CString cmd("SELECT * FROM ");
+	cmd+=tn_str;
+	exec_sql(cmd);
+
+	show_res();
+
 }

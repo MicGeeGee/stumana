@@ -33,7 +33,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg void OnBnClickedConnbtn();
+//	afx_msg void OnBnClickedConnbtn();
 	CListCtrl m_inlst;
 	
 	int incol_index;

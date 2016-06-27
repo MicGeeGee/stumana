@@ -184,6 +184,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="signin.h" />
     <ClInclude Include="EditTable.h" />
     <ClInclude Include="ItemEdit.h" />
     <ClInclude Include="Resource.h" />
@@ -193,6 +194,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="signin.cpp" />
     <ClCompile Include="EditTable.cpp" />
     <ClCompile Include="ItemEdit.cpp" />
     <ClCompile Include="stdafx.cpp">

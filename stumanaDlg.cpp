@@ -6,6 +6,7 @@
 #include "stumana.h"
 #include "stumanaDlg.h"
 #include "afxdialogex.h"
+#include "signin.h"
 
 
 
@@ -39,7 +40,7 @@ void CstumanaDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CstumanaDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_BN_CLICKED(IDC_CONNBTN, &CstumanaDlg::OnBnClickedConnbtn)
+//	ON_BN_CLICKED(IDC_CONNBTN, &CstumanaDlg::OnBnClickedConnbtn)
 	ON_NOTIFY(NM_DBLCLK, IDC_INLST, &CstumanaDlg::OnNMDblclkInlst)
 	ON_EN_KILLFOCUS(IDC_TEMPEDT, &CstumanaDlg::OnEnKillfocusTempedt)
 	ON_BN_CLICKED(IDOK, &CstumanaDlg::OnBnClickedOk)
@@ -99,8 +100,19 @@ BOOL CstumanaDlg::OnInitDialog()
 	m_tmpedt.ShowWindow(FALSE);
 	m_altbtn.EnableWindow(FALSE);
 
-	
 
+	Csignin signin_dlg(m_pConnection,m_pCommand,m_pRecordset);
+	signin_dlg.DoModal();
+
+	OnCbnDropdownTncobo();
+	if(m_tncobo.GetCount())
+	{
+		CString tn_str;
+		m_tncobo.SetCurSel(0);
+		m_tncobo.GetLBText(0,tn_str);
+		exec_sql(_T("SELECT * FROM ")+tn_str);
+		show_res();
+	}
 	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -174,57 +186,6 @@ void CstumanaDlg::db_conn()
 
 }
 
-void CstumanaDlg::OnBnClickedConnbtn()
-{
-	// TODO: 在此添加控件通知处理程序代码
-	db_conn();
-	m_pRecordset=m_pConnection->Execute("SELECT * FROM TAB",NULL,adCmdText);
-
-	show_res();
-
-	return;
-	
-	
-
-	m_pRecordset.CreateInstance(__uuidof(Recordset));
-	CString dname;
-	CString loc;
-	int deptno;
-	VARIANT var;
-	CString m_temp;
-	try
-	{
-		
-		m_pRecordset->Open("SELECT * FROM DEPT",// 查询DemoTable表中所有字段
-		m_pConnection.GetInterfacePtr(),  // 获取库接库的IDispatch指针
-		adOpenDynamic,
-		adLockOptimistic,
-		adCmdText);
-		while(!m_pRecordset->adoEOF)
-		{
-			var = m_pRecordset->GetCollect("DEPTNO");
-			if(var.vt != VT_NULL)
-				deptno = var.intVal;
-			var = m_pRecordset->GetCollect("DNAME");
-			if(var.vt != VT_NULL)
-				dname = (LPCSTR)_bstr_t(var);
-			var = m_pRecordset->GetCollect("LOC");
-			if(var.vt != VT_NULL)
-				loc = (LPCSTR)_bstr_t(var);
-			m_temp.Format(_T("deptno=%d,dname=%s,loc=%s"),deptno,dname,loc);
-			
-
-			AfxMessageBox(m_temp);
-			m_pRecordset->MoveNext();
-		}
-	}
-	catch(_com_error *e)
-	{
-		AfxMessageBox(e->ErrorMessage());
-	}
-
-
-}
 
 void CstumanaDlg::add_outcol(const CString& attr_str)
 {
@@ -805,8 +766,8 @@ void CstumanaDlg::OnNMClickOutlst(NMHDR *pNMHDR, LRESULT *pResult)
 				upcache_wh+=CString(" AND ");
 		}
 	}
-
-	m_altbtn.EnableWindow(TRUE);
+	if(nld>=0)
+		m_altbtn.EnableWindow(TRUE);
 
 	*pResult = 0;
 }

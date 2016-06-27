@@ -39,7 +39,10 @@
     <ClInclude Include="ItemEdit.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="signin.h">
+    <ClInclude Include="signinDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="querysDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,7 +62,10 @@
     <ClCompile Include="ItemEdit.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="signin.cpp">
+    <ClCompile Include="signinDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="querysDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

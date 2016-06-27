@@ -6,8 +6,8 @@
 #include "stumana.h"
 #include "stumanaDlg.h"
 #include "afxdialogex.h"
-#include "signin.h"
-
+#include "signinDlg.h"
+#include "querysDlg.h"
 
 
 #ifdef _DEBUG
@@ -54,6 +54,7 @@ BEGIN_MESSAGE_MAP(CstumanaDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_ALTBTN, &CstumanaDlg::OnBnClickedAltbtn)
 	ON_CBN_DROPDOWN(IDC_TNCOBO, &CstumanaDlg::OnCbnDropdownTncobo)
 	ON_CBN_SELCHANGE(IDC_TNCOBO, &CstumanaDlg::OnCbnSelchangeTncobo)
+	ON_BN_CLICKED(IDC_SPEQBTN, &CstumanaDlg::OnBnClickedSpeqbtn)
 END_MESSAGE_MAP()
 
 
@@ -867,5 +868,32 @@ void CstumanaDlg::OnCbnSelchangeTncobo()
 	exec_sql(cmd);
 
 	show_res();
+
+}
+
+
+void CstumanaDlg::OnBnClickedSpeqbtn()
+{
+	// TODO: 在此添加控件通知处理程序代码
+
+	BOOL isq;
+	int nq;
+
+	Cquerys cq_dlg(isq,nq);
+	cq_dlg.DoModal();
+
+	if(isq)
+	{
+		switch (nq)
+		{
+		case 0:exec_sql("select s.sname,x.grade from s,sc x,c where c.cno=x.cno and c.cname='Database' and s.sno=x.sno and x.grade =(select max(y.grade) from sc y,c where y.cno=c.cno and c.cname='Database'and y.grade <(select max(z.grade) from sc z,c where z.cno=c.cno and c.cname='Database'))"); 
+			show_res();break;
+		case 1:exec_sql("select distinct s.sno,s.sname from s ,sc x where s.sno=x.sno and not exists(select * from c y where y.cno not in (select z.cno from sc z where z.sno=s.sno))");
+			show_res();break;
+		default:
+			break;
+		}
+	}
+
 
 }

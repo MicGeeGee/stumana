@@ -106,4 +106,5 @@ public:
 	afx_msg void OnCbnDropdownTncobo();
 	CComboBox m_tncobo;
 	afx_msg void OnCbnSelchangeTncobo();
+	afx_msg void OnBnClickedSpeqbtn();
 };

@@ -67,16 +67,31 @@ BOOL Csignin::conn()
 	}
 	catch(_com_error& e)///²¶×½Òì³£
 	{
-		//MessageBox(e.ErrorMessage());
+		//MessageBox(e.Description());
 
-		MessageBox(_T("Cannot sign in."));
+		//MessageBox(_T("Cannot sign in.")+e.Description());
+		show_exception(e.Description());
 		return FALSE;
-		//show_exception(e.ErrorMessage());
+		
 	}
 
 	
 
 }
+
+
+void Csignin::show_exception(const char* info)
+{
+	CString info_cstr(info);
+	::MessageBox(NULL,info_cstr,_T("Error"),MB_ICONERROR);
+}
+
+void Csignin::show_exception(CString info)
+{
+	::MessageBox(NULL,info,_T("Error"),MB_ICONERROR);
+}
+
+
 
 Csignin::~Csignin()
 {

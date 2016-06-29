@@ -27,6 +27,8 @@ protected:
 public:
 	afx_msg void OnBnClickedOk();
 	
+	void show_exception(const char* info);
+	void show_exception(CString info);
 
 	_ConnectionPtr& m_pConnection;
 	_CommandPtr&    m_pCommand;

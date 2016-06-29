@@ -32,6 +32,9 @@ protected:
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
+
+	char temp_str[1000];
+
 public:
 //	afx_msg void OnBnClickedConnbtn();
 	CListCtrl m_inlst;
@@ -65,7 +68,7 @@ public:
 	void add_outcol(const CString& attr_str);
 	void add_outrow(const std::vector<CString>& row);
 
-	CString VARIANT_to_CString(const VARIANT& var);
+	void VARIANT_to_CString(const VARIANT& var,CString& strValue);
 
 	CString upcache_wh;
 	
@@ -98,6 +101,12 @@ public:
 
 	CString get_tn();
 
+	int coboi_cache;
+
+	void enable_manip();
+	void disable_manip();
+
+
 	afx_msg void OnBnClickedSelbtn();
 	afx_msg void OnBnClickedDelbtn();
 	afx_msg void OnNMClickOutlst(NMHDR *pNMHDR, LRESULT *pResult);
@@ -107,4 +116,7 @@ public:
 	CComboBox m_tncobo;
 	afx_msg void OnCbnSelchangeTncobo();
 	afx_msg void OnBnClickedSpeqbtn();
+	afx_msg void OnCbnKillfocusTncobo();
+	CButton m_insrtbtn;
+	CButton m_delbtn;
 };

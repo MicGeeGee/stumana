@@ -35,6 +35,8 @@ void CstumanaDlg::DoDataExchange(CDataExchange* pDX)
 	//DDX_Control(pDX, IDC_TNEDT, m_tnedt);
 	DDX_Control(pDX, IDC_ALTBTN, m_altbtn);
 	DDX_Control(pDX, IDC_TNCOBO, m_tncobo);
+	DDX_Control(pDX, IDC_INSRTBTN, m_insrtbtn);
+	DDX_Control(pDX, IDC_DELBTN, m_delbtn);
 }
 
 BEGIN_MESSAGE_MAP(CstumanaDlg, CDialogEx)
@@ -55,6 +57,7 @@ BEGIN_MESSAGE_MAP(CstumanaDlg, CDialogEx)
 	ON_CBN_DROPDOWN(IDC_TNCOBO, &CstumanaDlg::OnCbnDropdownTncobo)
 	ON_CBN_SELCHANGE(IDC_TNCOBO, &CstumanaDlg::OnCbnSelchangeTncobo)
 	ON_BN_CLICKED(IDC_SPEQBTN, &CstumanaDlg::OnBnClickedSpeqbtn)
+	ON_CBN_KILLFOCUS(IDC_TNCOBO, &CstumanaDlg::OnCbnKillfocusTncobo)
 END_MESSAGE_MAP()
 
 
@@ -99,13 +102,16 @@ BOOL CstumanaDlg::OnInitDialog()
 
 
 	m_tmpedt.ShowWindow(FALSE);
+	
 	m_altbtn.EnableWindow(FALSE);
+	m_delbtn.EnableWindow(FALSE);
 
 
 	Csignin signin_dlg(m_pConnection,m_pCommand,m_pRecordset);
 	signin_dlg.DoModal();
 
 	OnCbnDropdownTncobo();
+	
 	if(m_tncobo.GetCount())
 	{
 		CString tn_str;
@@ -113,7 +119,11 @@ BOOL CstumanaDlg::OnInitDialog()
 		m_tncobo.GetLBText(0,tn_str);
 		exec_sql(_T("SELECT * FROM ")+tn_str);
 		show_res();
+
+		m_insrtbtn.EnableWindow(TRUE);
+		coboi_cache=0;
 	}
+	
 	
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -180,9 +190,9 @@ void CstumanaDlg::db_conn()
 	}
 	catch(_com_error e)///捕捉异常
 	{
-		MessageBox(e.ErrorMessage());
+		
 
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 	}
 
 }
@@ -202,15 +212,14 @@ void CstumanaDlg::add_outrow(const std::vector<CString>& row)
 }
 
 
-CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
+void CstumanaDlg::VARIANT_to_CString(const VARIANT& var,CString& strValue)
 {
-      CString strValue;
      _variant_t var_t;
      _bstr_t bst_t;
      time_t cur_time;
      CTime time_value;
      COleCurrency var_currency;
-	 char str[100];
+	// char str[1000];
 
      switch(var.vt)
     {
@@ -218,24 +227,24 @@ CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
                 strValue=_T("");
                  break;
           case VT_UI1:
-				sprintf(str,("%d"),var.bVal);
-                strValue=CString(str);
+				sprintf(temp_str,("%d"),var.bVal);
+                strValue=CString(temp_str);
                 break;
          case VT_I2:
-				sprintf(str,("%d"),var.iVal);
-                strValue=CString(str);   
+				sprintf(temp_str,("%d"),var.iVal);
+                strValue=CString(temp_str);   
 			    break;
          case VT_I4:
-                sprintf(str,("%d"),var.lVal);
-                strValue=CString(str);
+                sprintf(temp_str,("%d"),var.lVal);
+                strValue=CString(temp_str);
 				break;
          case VT_R4:
-                sprintf(str,("%f"),var.fltVal);
-                strValue=CString(str);
+                sprintf(temp_str,("%f"),var.fltVal);
+                strValue=CString(temp_str);
 				break;
          case VT_R8:
-                sprintf(str,("%f"),var.dblVal);
-                strValue=CString(str);
+                sprintf(temp_str,("%f"),var.dblVal);
+                strValue=CString(temp_str);
 				break;
         case VT_CY:
                 var_currency=var;
@@ -244,8 +253,8 @@ CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
         case VT_BSTR:
                 var_t=var;
                 bst_t=var_t;
-                sprintf(str,("%s"),(const char*)bst_t);
-                strValue=CString(str);
+                sprintf(temp_str,("%s"),(const char*)bst_t);
+                strValue=temp_str;
 				break;
         case VT_NULL:
                 strValue=_T("");
@@ -256,19 +265,19 @@ CString CstumanaDlg::VARIANT_to_CString(const VARIANT& var)
                 strValue=time_value.Format(_T("%A,%B%d,%Y"));
 				break;
         case VT_BOOL:
-                sprintf(str,("%d"),var.boolVal);
-                strValue=CString(str);
+                sprintf(temp_str,("%d"),var.boolVal);
+                strValue=CString(temp_str);
 				break;
 		case VT_DECIMAL:
-				//sprintf(str,("%d"),var.bVal);
-				sprintf(str,("%d"),var.intVal);
-                strValue=CString(str);
+				//sprintf(temp_str,("%d"),var.bVal);
+				sprintf(temp_str,("%d"),var.intVal);
+                strValue=CString(temp_str);
 				break;
         default: 
                 strValue=_T("");
                 break;
        }
-       return strValue;
+       
 }
 
 void CstumanaDlg::show_res()
@@ -308,7 +317,9 @@ void CstumanaDlg::show_res()
 			for(int i=0;i<ncols;i++)
 			{
 				var=m_pRecordset->GetCollect(attr_strs[i].GetString());
-				one_row.push_back(VARIANT_to_CString(var));
+				CString str;
+				VARIANT_to_CString(var,str);
+				one_row.push_back(str);
 			}
 			
 			
@@ -320,7 +331,7 @@ void CstumanaDlg::show_res()
 	}
 	catch(_com_error &e)
 	{
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 	}
 }
 
@@ -368,7 +379,6 @@ void CstumanaDlg::OnNMDblclkInlst(NMHDR *pNMHDR, LRESULT *pResult)
 	}
 	*pResult = 0;
 }
-
 
 
 
@@ -483,7 +493,7 @@ void CstumanaDlg::exec_sql(const char* cmd)
 	}
 	catch(_com_error& e)
 	{
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 	}
 }
 
@@ -497,7 +507,7 @@ void CstumanaDlg::exec_sql(const CString& cmd)
 	}
 	catch(_com_error &e)
 	{
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 	}
 }
 void CstumanaDlg::exec_sql(const _bstr_t& cmd)
@@ -509,7 +519,7 @@ void CstumanaDlg::exec_sql(const _bstr_t& cmd)
 	}
 	catch(_com_error &e)
 	{
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 	}
 }
 
@@ -728,7 +738,7 @@ void CstumanaDlg::OnNMClickOutlst(NMHDR *pNMHDR, LRESULT *pResult)
 
 	CString tn_str=get_tn();
 	//m_tnedt.GetWindowTextW(tn_str);
-	
+
 	if(tn_str.IsEmpty())
 	{
 		*pResult = 0;
@@ -768,7 +778,11 @@ void CstumanaDlg::OnNMClickOutlst(NMHDR *pNMHDR, LRESULT *pResult)
 		}
 	}
 	if(nld>=0)
+	{
 		m_altbtn.EnableWindow(TRUE);
+		m_delbtn.EnableWindow(TRUE);
+		enable_manip();
+	}
 
 	*pResult = 0;
 }
@@ -828,8 +842,9 @@ void CstumanaDlg::OnCbnDropdownTncobo()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
+	disable_manip();
+	
 	VARIANT var;
-
 	m_tncobo.ResetContent();
 
 	std::vector<CString> tn_list;
@@ -839,13 +854,20 @@ void CstumanaDlg::OnCbnDropdownTncobo()
 		while(!m_pRecordset->adoEOF)
 		{
 			var=m_pRecordset->GetCollect("TNAME");
-			tn_list.push_back(VARIANT_to_CString(var));
+			CString str;
+			VARIANT_to_CString(var,str);
+			if(str.Compare(CString("QUERYS"))==0)
+			{
+				m_pRecordset->MoveNext();
+				continue;
+			}
+			tn_list.push_back(str);
 			m_pRecordset->MoveNext();
 		}
 	}
 	catch(_com_error &e)
 	{
-		show_exception(e.ErrorMessage());
+		show_exception(e.Description());
 		return;
 	}
 
@@ -855,33 +877,68 @@ void CstumanaDlg::OnCbnDropdownTncobo()
 
 }
 
+void CstumanaDlg::enable_manip()
+{
+	m_insrtbtn.EnableWindow(TRUE);
+	//m_altbtn.EnableWindow(FALSE);
+	//m_delbtn.EnableWindow(FALSE);
+}
+void CstumanaDlg::disable_manip()
+{
+	m_insrtbtn.EnableWindow(FALSE);
+	m_altbtn.EnableWindow(FALSE);
+	m_delbtn.EnableWindow(FALSE);
+}
+
 
 void CstumanaDlg::OnCbnSelchangeTncobo()
 {
 	// TODO: 在此添加控件通知处理程序代码
 
-	
 	CString tn_str=get_tn();
-	
+	coboi_cache = m_tncobo.GetCurSel();
 	CString cmd("SELECT * FROM ");
 	cmd+=tn_str;
 	exec_sql(cmd);
 
 	show_res();
-
+	enable_manip();
+	m_outlst.EnableWindow(TRUE);
 }
 
 
 void CstumanaDlg::OnBnClickedSpeqbtn()
 {
 	// TODO: 在此添加控件通知处理程序代码
-
 	BOOL isq;
 	int nq;
-
-	Cquerys cq_dlg(isq,nq);
+	VARIANT var;
+	
+	Cquerys cq_dlg(m_pConnection,m_pRecordset,isq,nq);
 	cq_dlg.DoModal();
 
+	CString cmd;
+	cmd.Format(_T("SELECT CMD FROM QUERYS WHERE ID=%d"),nq);
+
+	if(isq)
+	{
+		exec_sql(cmd);
+		try
+		{
+			var=m_pRecordset->GetCollect("CMD");
+		}
+		catch(_com_error &e)
+		{
+			show_exception(e.Description());
+			return;
+		}
+		exec_sql((_bstr_t)var.bstrVal);
+		show_res();
+		disable_manip();
+		m_outlst.EnableWindow(FALSE);
+	}
+
+	/*
 	if(isq)
 	{
 		switch (nq)
@@ -894,6 +951,24 @@ void CstumanaDlg::OnBnClickedSpeqbtn()
 			break;
 		}
 	}
+	*/
 
+}
+
+
+void CstumanaDlg::OnCbnKillfocusTncobo()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	//return;
+	
+	OnCbnDropdownTncobo();
+	if(m_tncobo.GetCount())
+	{
+		CString tn_str;
+		m_tncobo.SetCurSel(coboi_cache);
+		m_tncobo.GetLBText(coboi_cache,tn_str);
+		exec_sql(_T("SELECT * FROM ")+tn_str);
+		show_res();
+	}
 
 }

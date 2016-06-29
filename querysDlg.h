@@ -10,7 +10,7 @@ class Cquerys : public CDialogEx
 	DECLARE_DYNAMIC(Cquerys)
 
 public:
-	Cquerys(_ConnectionPtr& m_pConn,
+	Cquerys(CString& sqlcmd,_ConnectionPtr& m_pConn,
 	_RecordsetPtr&  m_pRec,BOOL& isquery,int& nquery,CWnd* pParent = NULL);   // 标准构造函数
 	
 	
@@ -29,6 +29,8 @@ public:
 	virtual BOOL OnInitDialog();
 	CComboBox m_qicobo;
 
+
+	CString& SQLcmd;
 	_ConnectionPtr& m_pConnection;
 	_RecordsetPtr&  m_pRecordset;
 
@@ -54,4 +56,7 @@ public:
 	CEdit m_cmdedt;
 	CButton m_execqbtn;
 	afx_msg void OnCbnDropdownQicobo();
+	afx_msg void OnEnChangeCmdedt();
+	CButton m_addqbtn;
+	afx_msg void OnEnChangeQinfoedt();
 };

@@ -11,9 +11,9 @@
 
 IMPLEMENT_DYNAMIC(Cquerys, CDialogEx)
 
-Cquerys::Cquerys(_ConnectionPtr& m_pConn,
+Cquerys::Cquerys(CString& sqlcmd,_ConnectionPtr& m_pConn,
 	_RecordsetPtr&  m_pRec,BOOL& isquery,int& nquery,CWnd* pParent /*=NULL*/)
-	: CDialogEx(Cquerys::IDD, pParent),nq(nquery),isq(isquery),m_pConnection(m_pConn),m_pRecordset(m_pRec)
+	: CDialogEx(Cquerys::IDD, pParent),nq(nquery),isq(isquery),m_pConnection(m_pConn),m_pRecordset(m_pRec),SQLcmd(sqlcmd)
 {
 
 }
@@ -31,6 +31,7 @@ void Cquerys::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_QINFOEDT, m_infoedt);
 	DDX_Control(pDX, IDC_CMDEDT, m_cmdedt);
 	DDX_Control(pDX, IDOK, m_execqbtn);
+	DDX_Control(pDX, ID_ADDQ_BTN, m_addqbtn);
 }
 
 
@@ -40,6 +41,8 @@ BEGIN_MESSAGE_MAP(Cquerys, CDialogEx)
 	ON_BN_CLICKED(IDOK, &Cquerys::OnBnClickedOk)
 	ON_BN_CLICKED(ID_ADDQ_BTN, &Cquerys::OnBnClickedAddqBtn)
 	ON_CBN_DROPDOWN(IDC_QICOBO, &Cquerys::OnCbnDropdownQicobo)
+	ON_EN_CHANGE(IDC_CMDEDT, &Cquerys::OnEnChangeCmdedt)
+	ON_EN_CHANGE(IDC_QINFOEDT, &Cquerys::OnEnChangeQinfoedt)
 END_MESSAGE_MAP()
 
 
@@ -101,6 +104,8 @@ BOOL Cquerys::OnInitDialog()
 	//m_qicobo.AddString(_T("Who selects \"Data Base\" with the second highest mark."));
 
 
+	m_execqbtn.EnableWindow(FALSE);
+	m_addqbtn.EnableWindow(FALSE);
 
 	return TRUE;  // return TRUE unless you set the focus to a control
 }
@@ -123,7 +128,7 @@ void Cquerys::OnCbnSelchangeQicobo()
 		var_cmd=m_pRecordset->GetCollect("CMD");
 		m_cmdedt.SetWindowTextW(var_cmd.bstrVal);
 
-		m_execqbtn.EnableWindow(TRUE);
+		//m_execqbtn.EnableWindow(TRUE);
 	}
 	catch(_com_error &e)
 	{
@@ -145,6 +150,19 @@ void Cquerys::OnBnClickedOk()
 {
 	// TODO: 在此添加控件通知处理程序代码
 	isq=TRUE;
+	m_cmdedt.GetWindowTextW(SQLcmd);
+
+	try
+	{
+		m_pRecordset=m_pConnection->Execute((_bstr_t)SQLcmd,NULL,adCmdText);
+		m_pConnection->Execute("commit",NULL,adCmdText);
+	}
+	catch(_com_error &e)
+	{
+		show_exception(e.Description());
+		return;	
+	}
+
 	CDialogEx::OnOK();
 }
 
@@ -273,6 +291,44 @@ void Cquerys::OnBnClickedAddqBtn()
 void Cquerys::OnCbnDropdownQicobo()
 {
 	// TODO: 在此添加控件通知处理程序代码
-	m_execqbtn.EnableWindow(FALSE);
+	//m_execqbtn.EnableWindow(FALSE);
 
+}
+
+
+void Cquerys::OnEnChangeCmdedt()
+{
+	CString cmd,info;
+
+	m_cmdedt.GetWindowTextW(cmd);
+	m_infoedt.GetWindowTextW(info);
+
+	if(cmd.IsEmpty())
+	{
+		m_execqbtn.EnableWindow(FALSE);
+		m_addqbtn.EnableWindow(FALSE);
+	}
+	else
+	{
+		m_execqbtn.EnableWindow(TRUE);
+		if(!info.IsEmpty())
+			m_addqbtn.EnableWindow(TRUE);
+	}
+	
+}
+
+
+void Cquerys::OnEnChangeQinfoedt()
+{
+	CString cmd,info;
+
+	m_cmdedt.GetWindowTextW(cmd);
+	m_infoedt.GetWindowTextW(info);
+
+	if(info.IsEmpty())
+		m_addqbtn.EnableWindow(FALSE);
+	else if(!cmd.IsEmpty())
+		m_addqbtn.EnableWindow(TRUE);
+		
+	
 }

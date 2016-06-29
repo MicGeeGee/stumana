@@ -913,9 +913,26 @@ void CstumanaDlg::OnBnClickedSpeqbtn()
 	BOOL isq;
 	int nq;
 	VARIANT var;
-	
-	Cquerys cq_dlg(m_pConnection,m_pRecordset,isq,nq);
+	CString sqlcmd;
+	Cquerys cq_dlg(sqlcmd,m_pConnection,m_pRecordset,isq,nq);
 	cq_dlg.DoModal();
+
+
+	if(!sqlcmd.IsEmpty())
+	{
+		try
+		{
+			m_pRecordset=m_pConnection->Execute((_bstr_t)sqlcmd,NULL,adCmdText);
+			m_pConnection->Execute("commit",NULL,adCmdText);
+		}
+		catch(_com_error &e)
+		{
+			show_exception(e.Description());
+			return;
+		}
+		show_res();
+		return;
+	}
 
 	CString cmd;
 	cmd.Format(_T("SELECT CMD FROM QUERYS WHERE ID=%d"),nq);
